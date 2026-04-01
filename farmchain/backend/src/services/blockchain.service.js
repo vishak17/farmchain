@@ -142,7 +142,7 @@ class BlockchainService {
       const { batchId, currentWeightGrams, nodeType, sealStatus, ipfsVisualHash, nodeName, gpsLocation } = params;
       
       const tx = await contract.recordCustodyTransfer(
-        batchId, currentWeightGrams, nodeType, sealStatus, ipfsVisualHash, nodeName, gpsLocation
+        batchId, currentWeightGrams, ipfsVisualHash, gpsLocation, nodeName, nodeType, sealStatus
       );
       const receipt = await tx.wait();
       
@@ -257,9 +257,10 @@ class BlockchainService {
       const signer = this.getDeployerSigner();
       const contract = this.getContract('DisputeEngine', signer);
       
-      const payload = JSON.stringify({ systemEvidence, recommendation });
+      const evidenceStr = typeof systemEvidence === 'string' ? systemEvidence : JSON.stringify(systemEvidence);
+      const recommendationStr = typeof recommendation === 'string' ? recommendation : JSON.stringify(recommendation);
       
-      const tx = await contract.createDispute(batchId, respondent, disputeType, payload);
+      const tx = await contract.createDispute(batchId, respondent, disputeType, evidenceStr, recommendationStr);
       const receipt = await tx.wait();
       
       const event = receipt.logs.map(log => {

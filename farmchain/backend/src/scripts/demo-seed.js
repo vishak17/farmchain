@@ -428,7 +428,8 @@ async function runIntegrationTests(batches) {
     }, { timeout: 5000 });
     results.push({ name: 'POST AI /analyze', pass: res.status === 200, detail: `AI responded with status ${res.status}` });
   } catch (err) {
-    results.push({ name: 'POST AI /analyze', pass: false, detail: err.code === 'ECONNREFUSED' ? 'AI service not running' : (err.response?.data?.detail || err.message) });
+    const aiErr = err.code === 'ECONNREFUSED' ? 'AI service not running' : (typeof err.response?.data?.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response?.data?.detail || err.message));
+    results.push({ name: 'POST AI /analyze', pass: false, detail: aiErr });
   }
 
   // ── Test F: GET /subsidy/queue ────────────────────────
@@ -452,7 +453,7 @@ async function runIntegrationTests(batches) {
     const status = r.pass ? '✅ PASS' : '❌ FAIL';
     if (r.pass) passed++; else failed++;
     const name = r.name.padEnd(36);
-    const det = (r.detail || '').substring(0, 30);
+    const det = String(r.detail || '').substring(0, 30);
     console.log(`  │  ${name} ${status}   ${det.padEnd(24)}│`);
   }
 
