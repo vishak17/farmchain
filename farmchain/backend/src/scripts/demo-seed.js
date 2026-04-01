@@ -394,7 +394,7 @@ async function runIntegrationTests(batches) {
   // ── Test B: GET /admin/dashboard ──────────────────────
   try {
     const res = await axios.get(`${API}/admin/dashboard`, { headers: authHeaders, timeout: 5000 });
-    const hasData = res.data && (res.data.activeBatches !== undefined || res.data.data);
+    const hasData = res.data && (res.data.totalBatches !== undefined || res.data.data);
     results.push({ name: 'GET /admin/dashboard', pass: hasData, detail: hasData ? 'Dashboard stats returned' : 'Empty response' });
   } catch (err) {
     results.push({ name: 'GET /admin/dashboard', pass: false, detail: err.response?.data?.message || err.message });
@@ -403,8 +403,8 @@ async function runIntegrationTests(batches) {
   // ── Test C: GET /batch/network/inventory ──────────────
   try {
     const res = await axios.get(`${API}/batch/network/inventory?produce=tomato`, { headers: authHeaders, timeout: 5000 });
-    const weight = res.data?.totalWeightGrams || res.data?.data?.totalWeightGrams || 0;
-    results.push({ name: 'GET /batch/network/inventory', pass: weight > 0, detail: `Total weight: ${weight}g` });
+    const weight = res.data?.totalWeightKg || res.data?.data?.totalWeightKg || 0;
+    results.push({ name: 'GET /batch/network/inventory', pass: weight > 0, detail: `Total weight: ${weight}kg` });
   } catch (err) {
     results.push({ name: 'GET /batch/network/inventory', pass: false, detail: err.response?.data?.message || err.message });
   }
@@ -421,11 +421,18 @@ async function runIntegrationTests(batches) {
 
   // ── Test E: POST /analyze (AI Service) ────────────────
   try {
-    const res = await axios.post(`${AI_URL}/analyze`, {
-      batchId: traceBatchId,
-      produceType: 'tomato',
-      readings: [{ weight: 10000, temp: 25, humidity: 80, timestamp: new Date().toISOString() }]
-    }, { timeout: 5000 });
+    const FormData = require('form-data');
+    const fd = new FormData();
+    fd.append('request', JSON.stringify({
+      batch_id: traceBatchId,
+      produce_type: 'tomato',
+      category: 'STANDARD',
+      declared_count: 80,
+      declared_weight_grams: 10000,
+      node_type: 0,
+      hours_since_harvest: 6
+    }));
+    const res = await axios.post(`${AI_URL}/analyze`, fd, { headers: fd.getHeaders(), timeout: 5000 });
     results.push({ name: 'POST AI /analyze', pass: res.status === 200, detail: `AI responded with status ${res.status}` });
   } catch (err) {
     const aiErr = err.code === 'ECONNREFUSED' ? 'AI service not running' : (typeof err.response?.data?.detail === 'string' ? err.response.data.detail : JSON.stringify(err.response?.data?.detail || err.message));

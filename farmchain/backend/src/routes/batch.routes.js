@@ -31,17 +31,22 @@ router.post('/custody-transfer', authenticate, asyncHandler(async (req, res) => 
   let aiAnalysis = null;
   if (process.env.AI_SERVICE_URL) {
     try {
-      const aiRes = await axios.post(`${process.env.AI_SERVICE_URL}/analyze`, {
+      const FormData = require('form-data');
+      const fd = new FormData();
+      fd.append('request', JSON.stringify({
         batch_id: batchId,
         produce_type: batch.produceType,
         category: batch.category,
         declared_count: 100,
         declared_weight_grams: payload.weightGrams,
-        node_type: nodeType
-      });
+        node_type: nodeType,
+        hours_since_harvest: hoursSince
+      }));
+
+      const aiRes = await axios.post(`${process.env.AI_SERVICE_URL}/analyze`, fd, { headers: fd.getHeaders() });
       aiAnalysis = aiRes.data;
     } catch (err) {
-      console.warn("AI Service unavailable, skipping computer vision analysis limit test");
+      console.warn("AI Service unavailable or Error during request, skipping analysis.");
     }
   }
 
