@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-farm-bg text-farm-text font-display; }
+
+.glass { @apply bg-farm-surface/80 backdrop-blur-sm border border-farm-border; }
+.card { @apply bg-farm-surface border border-farm-border rounded-xl p-4; }
+.btn-primary { @apply bg-farm-green hover:bg-farm-green-dark text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 active:scale-95; }
+.btn-danger { @apply bg-farm-red hover:opacity-90 text-white font-semibold py-2 px-4 rounded-lg transition-all; }
+.btn-ghost { @apply border border-farm-border hover:bg-farm-surface-2 text-farm-text font-medium py-2 px-4 rounded-lg transition-all; }
+.input { @apply bg-farm-surface-2 border border-farm-border rounded-lg px-3 py-2 text-farm-text placeholder-farm-muted focus:outline-none focus:ring-2 focus:ring-farm-green focus:border-transparent w-full; }
+.badge-green { @apply bg-farm-green/20 text-farm-green-light border border-farm-green/30 px-2 py-0.5 rounded-full text-xs font-medium; }
+.badge-amber { @apply bg-farm-amber/20 text-farm-amber-light border border-farm-amber/30 px-2 py-0.5 rounded-full text-xs font-medium; }
+.badge-red { @apply bg-farm-red/20 text-farm-red-light border border-farm-red/30 px-2 py-0.5 rounded-full text-xs font-medium; }
+.badge-blue { @apply bg-farm-blue/20 text-farm-blue-light border border-farm-blue/30 px-2 py-0.5 rounded-full text-xs font-medium; }
