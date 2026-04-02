@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:chronicle": "hardhat run scripts/deploy-chronicle.js --network localhost",
+    "node": "hardhat node",
+    "test": "hardhat test"
   },
   "keywords": [],
   "author": "",

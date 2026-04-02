@@ -14,7 +14,19 @@ const UserSchema = new mongoose.Schema({
   walletPrivateKey: { type: String },
   farmerId: { type: Number },
   isActive: { type: Boolean, default: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+
+  // ── Wallet Auth (MetaMask / WalletConnect) ─────────────────
+  // The user's EXTERNAL wallet address they control (e.g. MetaMask).
+  // Sparse + unique: once set, this address is permanently bound to this role.
+  externalWalletAddress: { 
+    type: String, 
+    lowercase: true, 
+    sparse: true,
+    unique: true 
+  },
+  // Timestamp when the role was locked via wallet auth — immutable after first set
+  roleLockedAt: { type: Date }
 });
 
 UserSchema.methods.generateWallet = function() {

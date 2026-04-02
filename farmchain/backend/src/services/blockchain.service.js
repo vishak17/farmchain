@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 const contractsPath = path.resolve(__dirname, '../../config/contracts.json');
-const abisDir = path.resolve(__dirname, '../../config/abis');
+const chroniclePath = path.resolve(__dirname, '../../config/chronicle-contracts.json');
+const abisDir      = path.resolve(__dirname, '../../config/abis');
 
 let addresses = {};
 try {
@@ -12,6 +13,15 @@ try {
   }
 } catch (err) {
   console.warn("contracts.json not found or invalid. Ensure you run the deploy script first.");
+}
+
+let chronicleAddresses = {};
+try {
+  if (fs.existsSync(chroniclePath)) {
+    chronicleAddresses = JSON.parse(fs.readFileSync(chroniclePath, 'utf8'));
+  }
+} catch (err) {
+  console.warn("chronicle-contracts.json not found. Run deploy-chronicle.js first.");
 }
 
 const getAbi = (contractName) => {
@@ -27,11 +37,14 @@ const getAbi = (contractName) => {
 };
 
 const ABIs = {
-  FarmerRegistry: getAbi('FarmerRegistry'),
-  BatchRegistry: getAbi('BatchRegistry'),
-  DisputeEngine: getAbi('DisputeEngine'),
-  SubsidyEngine: getAbi('SubsidyEngine'),
-  FundingContracts: getAbi('FundingContracts')
+  FarmerRegistry:   getAbi('FarmerRegistry'),
+  BatchRegistry:    getAbi('BatchRegistry'),
+  DisputeEngine:    getAbi('DisputeEngine'),
+  SubsidyEngine:    getAbi('SubsidyEngine'),
+  FundingContracts: getAbi('FundingContracts'),
+  // Chronicle (NFT custody layer)
+  FarmChainRegistry: getAbi('FarmChainRegistry'),
+  ProduceBatch:      getAbi('ProduceBatch'),
 };
 
 // Hardcoded deployer PK matching Hardhat account #0 for automated system execution
@@ -61,6 +74,44 @@ class BlockchainService {
       throw new Error(`Address for ${contractName} not found in contracts.json`);
     }
     return new ethers.Contract(addresses[contractName], ABIs[contractName], signer || this.provider);
+  }
+
+  getChronicleContract(contractName, signer) {
+    const addr = chronicleAddresses[contractName];
+    if (!addr) throw new Error(`Chronicle address for ${contractName} not found. Run deploy-chronicle.js first.`);
+    return new ethers.Contract(addr, ABIs[contractName], signer || this.provider);
+  }
+
+  // ── FarmChainRegistry (Chronicle) ────────────────────────────────
+
+  /**
+   * Register + verify a participant in FarmChainRegistry.
+   * Called by the backend after a successful wallet-login for FARMER / MIDDLEMAN / RETAILER.
+   * Deployer (admin) signs both txs on behalf of the new user.
+   *
+   * @param {string} walletAddress  The MetaMask wallet to register
+   * @param {0|1|2|3} chainRole    0=FARMER,1=LOGISTICS,2=AGGREGATOR,3=RETAILER
+   */
+  async registerOnChronicleRegistry(walletAddress, chainRole) {
+    const signer   = this.getDeployerSigner();
+    const registry = this.getChronicleContract('FarmChainRegistry', signer);
+
+    // Check if already registered to avoid revert
+    const alreadyRegistered = await registry.isRegistered(walletAddress);
+    if (alreadyRegistered) {
+      const alreadyVerified = await registry.isVerifiedParticipant(walletAddress);
+      if (!alreadyVerified) await (await registry.verifyParticipant(walletAddress)).wait();
+      return { alreadyRegistered: true };
+    }
+
+    const locationHash = ethers.encodeBytes32String('WALLET_AUTH');
+    const tx1 = await registry.registerParticipant(walletAddress, chainRole, locationHash);
+    await tx1.wait();
+
+    const tx2 = await registry.verifyParticipant(walletAddress);
+    const receipt = await tx2.wait();
+
+    return { txHash: receipt.hash, chainRole };
   }
 
   handleError(error) {

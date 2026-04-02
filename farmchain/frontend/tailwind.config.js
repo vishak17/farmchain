@@ -8,6 +8,7 @@ export default {
           amber: '#d97706', 'amber-light': '#f59e0b',
           red: '#dc2626', 'red-light': '#ef4444',
           blue: '#1d4ed8', 'blue-light': '#3b82f6',
+          purple: '#7c3aed', 'purple-light': '#a78bfa',
           surface: '#1e293b', 'surface-2': '#273449', 'surface-3': '#334155',
           bg: '#0f172a', border: '#334155', text: '#e2e8f0', muted: '#94a3b8'
         }

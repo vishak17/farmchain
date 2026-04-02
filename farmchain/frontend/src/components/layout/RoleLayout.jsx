@@ -6,7 +6,7 @@ import {
   Menu, Link as LinkIcon, LogOut, Bell, 
   LayoutDashboard, Tractor, Package, CircleDollarSign, Shield,
   Truck, ClipboardCheck, ArrowRightLeft, Target, 
-  Map, Scale, AlertTriangle, Activity
+  Map, Scale, AlertTriangle, Activity, Search
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -36,18 +36,23 @@ const roleNavConfig = {
     { label: 'My Investments', path: '/consumer/investments', icon: Shield },
   ],
   ADMIN: [
-    { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-    { label: 'Network Map', path: '/admin/network', icon: Map },
-    { label: 'Disputes', path: '/admin/disputes', icon: Scale },
-    { label: 'Subsidy Control', path: '/admin/subsidy', icon: CircleDollarSign },
-    { label: 'Bad Actors', path: '/admin/bad-actors', icon: AlertTriangle },
-    { label: 'Simulation', path: '/admin/simulation', icon: Activity },
+    { label: 'Dashboard',    path: '/admin',              icon: LayoutDashboard },
+    { label: 'Network Map',  path: '/admin/network',      icon: Map },
+    { label: 'Disputes',     path: '/admin/disputes',     icon: Scale },
+    { label: 'Subsidy Control', path: '/admin/subsidy',   icon: CircleDollarSign },
+    { label: 'Bad Actors',   path: '/admin/bad-actors',   icon: AlertTriangle },
+    { label: 'Simulation',   path: '/admin/simulation',   icon: Activity },
+    { label: '🔍 Explorer',  path: '/explorer',           icon: Search },
   ],
   PANEL_MEMBER: [
-    { label: 'Dashboard', path: '/disputes', icon: LayoutDashboard },
-    { label: 'Open Disputes', path: '/disputes/open', icon: Scale },
+    { label: 'Dashboard',    path: '/disputes',           icon: LayoutDashboard },
+    { label: 'Open Disputes',path: '/disputes/open',      icon: Scale },
+    { label: '🔍 Explorer',  path: '/explorer',           icon: Search },
   ]
 };
+
+// Explorer link shown at the bottom of every role nav
+const EXPLORER_ITEM = { label: '🔍 Chain Explorer', path: '/explorer', icon: Search };
 
 const RoleLayout = () => {
   const { user, logout } = useAuthStore();
@@ -105,6 +110,20 @@ const RoleLayout = () => {
                 </li>
               );
             })}
+            {/* Explorer — always shown for every role */}
+            {!navItems.some(n => n.path === '/explorer') && (
+              <li>
+                <NavLink to="/explorer"
+                  className={({ isActive }) =>
+                    `flex items-center p-3 rounded-lg transition-colors group mt-2 border-t border-farm-border/50 pt-4 ${
+                      isActive ? 'bg-farm-green/10 text-farm-green-light border border-farm-green/20' : 'text-farm-muted hover:bg-farm-surface-2 hover:text-farm-text'
+                    }`
+                  }>
+                  <Search size={20} className="flex-shrink-0" />
+                  {sidebarOpen && <span className="ml-3 font-medium whitespace-nowrap">🔍 Chain Explorer</span>}
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
 

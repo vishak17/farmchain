@@ -26,6 +26,7 @@ import SubsidyControl from './pages/admin/SubsidyControl';
 import BadActors from './pages/admin/BadActors';
 import NetworkInventory from './pages/admin/NetworkInventory';
 import DisputePanelPage from './pages/admin/DisputePanel';
+import BlockchainExplorer from './pages/explorer/BlockchainExplorer';
 
 // Using RoleLayout generically for all roles
 const FarmerLayout = RoleLayout;
@@ -84,8 +85,9 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* Public/Trace Route */}
+        {/* Public routes — no auth required */}
         <Route path="/trace/:batchId" element={<BatchTrace />} />
+        <Route path="/explorer" element={<BlockchainExplorer />} />
         
         {/* Role Protected Layouts */}
         <Route path="/farmer" element={<ProtectedRoute element={<FarmerLayout />} roles={['FARMER']} />}>
@@ -120,6 +122,7 @@ export default function App() {
           <Route path="subsidy-pool" element={<SubsidyControl />} />
           <Route path="bad-actors" element={<BadActors />} />
           <Route path="inventory" element={<NetworkInventory />} />
+          <Route path="explorer" element={<BlockchainExplorer />} />
           <Route path="*" element={<AdminDashboard />} />
         </Route>
         

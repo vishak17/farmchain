@@ -57,7 +57,18 @@ export default function FundingRequests() {
       toast.error('Failed to settle harvest');
     }
     setSettleModalOpen(null);
+    setSettleModalOpen(null);
     setSettleAmount('');
+  };
+
+  const handleShare = (reqId) => {
+    const shareUrl = `${window.location.origin}/consumer/fund?requestId=${reqId}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Funding smart contract link copied!');
+    } else {
+      toast.error('Could not copy link');
+    }
   };
 
   const statusBadge = (s) => ({
@@ -173,7 +184,7 @@ export default function FundingRequests() {
                    ) : req.status === 'ACTIVE_SEASON' ? (
                      <button disabled className="btn-ghost opacity-50 cursor-not-allowed w-full sm:w-auto">Harvesting...</button>
                    ) : (
-                     <button className="btn-ghost w-full sm:w-auto border-farm-green/30 text-farm-green group-hover:bg-farm-green/10">Share Link <ArrowUpRight size={14} className="inline"/></button>
+                     <button onClick={() => handleShare(req.id)} className="btn-ghost w-full sm:w-auto border-farm-green/30 text-farm-green group-hover:bg-farm-green/10">Share Link <ArrowUpRight size={14} className="inline"/></button>
                    )}
                 </div>
               ))}
