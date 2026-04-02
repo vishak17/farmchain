@@ -40,3 +40,4 @@ class AnalysisResponse(BaseModel):
     ipfs_hash: str
     processing_time_ms: float
     model_version: str = "simulation_v1.0"
+    model_config = {"protected_namespaces": ()}
