@@ -840,12 +840,60 @@ export default function BlockchainExplorer() {
   };
 
   const contractList = [
-    { name:'FarmerRegistry',    addr:ADDRESSES.FarmerRegistry,    color:'farm-green' },
-    { name:'BatchRegistry',     addr:ADDRESSES.BatchRegistry,     color:'farm-blue'  },
-    { name:'FarmChainRegistry', addr:ADDRESSES.FarmChainRegistry, color:'farm-amber' },
-    { name:'ProduceBatch',      addr:ADDRESSES.ProduceBatch,      color:'farm-green' },
-    { name:'DisputeEngine',     addr:ADDRESSES.DisputeEngine,     color:'farm-red'   },
-    { name:'SubsidyEngine',     addr:ADDRESSES.SubsidyEngine,     color:'farm-amber' },
+    {
+      name: 'FarmerRegistry',
+      addr: ADDRESSES.FarmerRegistry,
+      color: 'farm-green',
+      emoji: '🌾',
+      type: 'Registry',
+      icon: <Leaf size={14} className="text-farm-green" />,
+      desc: 'Stores farmer identities, GPS villages, reputation scores, and insurance pool balances on-chain.',
+    },
+    {
+      name: 'BatchRegistry',
+      addr: ADDRESSES.BatchRegistry,
+      color: 'farm-blue',
+      emoji: '📦',
+      type: 'Core Logic',
+      icon: <Box size={14} className="text-farm-blue-light" />,
+      desc: 'Issues produce batches, records every custody hop with FRS score, and computes the PDEE expiry.',
+    },
+    {
+      name: 'FarmChainRegistry',
+      addr: ADDRESSES.FarmChainRegistry,
+      color: 'farm-amber',
+      emoji: '🔐',
+      type: 'Access Control',
+      icon: <Shield size={14} className="text-farm-amber" />,
+      desc: 'Binds MetaMask wallet addresses to immutable roles (FARMER/LOGISTICS/AGGREGATOR/RETAILER).',
+    },
+    {
+      name: 'ProduceBatch',
+      addr: ADDRESSES.ProduceBatch,
+      color: 'farm-green',
+      emoji: '🎫',
+      type: 'ERC-721 NFT',
+      icon: <Hash size={14} className="text-farm-green" />,
+      desc: 'Mints each produce batch as an NFT. Dual-signature transferCustody → acceptCustody flow.',
+    },
+    {
+      name: 'DisputeEngine',
+      addr: ADDRESSES.DisputeEngine,
+      color: 'farm-red',
+      emoji: '⚖️',
+      type: 'Governance',
+      icon: <AlertTriangle size={14} className="text-farm-red" />,
+      desc: 'Raises and resolves batch disputes via panel vote. Slashes reputation on confirmed bad actors.',
+    },
+    {
+      name: 'SubsidyEngine',
+      addr: ADDRESSES.SubsidyEngine,
+      color: 'farm-amber',
+      emoji: '💰',
+      type: 'Finance',
+      icon: <Zap size={14} className="text-farm-amber" />,
+      desc: 'Manages consumer funding rounds and disburses subsidies to verified farmers automatically.',
+    },
   ];
 
   return (
@@ -873,15 +921,55 @@ export default function BlockchainExplorer() {
         </div>
       </div>
 
-      {/* ── Contract Address Banner ──────────────────────────────────── */}
-      <div className="overflow-x-auto">
-        <div className="flex gap-2 min-w-max pb-1">
-          {contractList.map(c => (
-            <div key={c.name} className="flex items-center gap-2 px-3 py-2 bg-farm-surface-2 border border-farm-border rounded-lg text-xs shrink-0">
-              <div className={`w-2 h-2 rounded-full bg-${c.color}`}/>
-              <span className="text-farm-muted">{c.name}:</span>
-              <AddressChip addr={c.addr} className="text-farm-text" />
-            </div>
+      {/* ── Deployed Contracts Bento Grid ────────────────────────────── */}
+      <div>
+        <p className="text-[10px] uppercase tracking-widest text-farm-muted font-bold mb-3 flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-farm-green inline-block animate-pulse" />
+          Deployed Smart Contracts — Hardhat Localhost
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {contractList.map((c, i) => (
+            <motion.div
+              key={c.name}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04 }}
+              className="relative bg-farm-surface-2 border border-farm-border rounded-xl p-4 overflow-hidden group hover:border-farm-border/80 transition-colors"
+            >
+              {/* Colored left accent bar */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${c.color} rounded-l-xl opacity-80`} />
+
+              <div className="pl-3">
+                {/* Name row */}
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className={`text-base leading-none`}>{c.emoji}</span>
+                      <span className="text-farm-text font-bold text-sm">{c.name}</span>
+                    </div>
+                    <span className={`inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-${c.color}/15 text-${c.color} border border-${c.color}/25`}>
+                      {c.type}
+                    </span>
+                  </div>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${c.color}/10 border border-${c.color}/20 shrink-0`}>
+                    {c.icon}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-farm-muted text-[11px] leading-relaxed mb-3">{c.desc}</p>
+
+                {/* Address */}
+                <div className="flex items-center gap-2 bg-farm-surface rounded-lg px-2 py-1.5 border border-farm-border/60">
+                  <span className="text-farm-muted text-[10px] uppercase tracking-wider shrink-0">addr</span>
+                  <AddressChip addr={c.addr} className="text-farm-green font-mono flex-1" />
+                </div>
+              </div>
+
+              {/* Subtle grid texture overlay */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, rgba(74,222,128,0.04) 0%, transparent 60%)' }} />
+            </motion.div>
           ))}
         </div>
       </div>
