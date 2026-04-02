@@ -31,6 +31,8 @@ export const getMe = () => api.get('/auth/me');
 export const registerProduce = (data) => api.post('/farmer/register-produce', data);
 export const getFarmerBatches = () => api.get('/farmer/batches');
 export const getInsurancePool = () => api.get('/farmer/insurance-pool');
+export const createFundingRequest = (data) => api.post('/farmer/funding/create', data);
+export const settleHarvest = (id, data) => api.post(`/farmer/funding/${id}/settle`, data);
 
 // Batch
 export const getBatch = (id) => api.get(`/batch/${id}`);
@@ -43,6 +45,7 @@ export const traceConsumer = (id) => api.get(`/consumer/trace/${id}`);
 export const reportQuality = (id, data) => api.post(`/consumer/report/${id}`, data);
 export const getFundingMarketplace = () => api.get('/consumer/funding/marketplace');
 export const investInFarmer = (id, data) => api.post(`/consumer/funding/${id}/invest`, data);
+export const getMyInvestments = () => api.get('/consumer/investments');
 
 // Dispute
 export const createDispute = (data) => api.post('/dispute/create', data);

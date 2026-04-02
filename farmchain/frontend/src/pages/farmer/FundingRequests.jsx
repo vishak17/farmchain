@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlusCircle, Wallet, History, Users, ArrowUpRight, CheckCircle2, AlertTriangle, AlertCircle, Activity, ChevronRight, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { createFundingRequest, settleHarvest } from '../../services/api';
 
 // Mock active requests
 const MOCK_ACTIVE = [
@@ -29,18 +30,32 @@ export default function FundingRequests() {
 
   const totalCost = Number(formData.seeds) + Number(formData.fertilizer) + Number(formData.labor);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      toast.success('Smart contract generated and published to marketplace!');
-      setFormData({ crop: '', landArea: '', seeds: 0, fertilizer: 0, labor: 0, yieldEst: '', equity: 15 });
-    }, 1500);
+    try {
+       await createFundingRequest({
+          cropType: formData.crop,
+          landAreaCents: formData.landArea * 100, // example conversion
+          inputRequiredWei: totalCost, // Using INR abstract representation for WEI
+          estimatedYieldKg: formData.yieldEst,
+          equityPercent: formData.equity
+       });
+       toast.success('Smart contract generated and published to marketplace!');
+       setFormData({ crop: '', landArea: '', seeds: 0, fertilizer: 0, labor: 0, yieldEst: '', equity: 15 });
+    } catch (e) {
+       toast.error('Failed to create contract');
+    }
+    setSubmitting(false);
   };
 
-  const handleSettle = () => {
-    toast.success(`Harvest settled for ${settleAmount} INR. Funds auto-disbursed via smart contract to investors!`);
+  const handleSettle = async () => {
+    try {
+      await settleHarvest(settleModalOpen, { saleAmountWei: settleAmount });
+      toast.success(`Harvest settled for ${settleAmount} INR. Funds auto-disbursed via smart contract to investors!`);
+    } catch (e) {
+      toast.error('Failed to settle harvest');
+    }
     setSettleModalOpen(null);
     setSettleAmount('');
   };

@@ -86,12 +86,12 @@ export default function RegisterProduce() {
     setIsSubmitting(true);
     try {
       const payload = {
-        produce: formData.produceType.toLowerCase(),
-        weight: Number(formData.weight),
-        itemCount: Number(formData.itemCount),
+        produceType: formData.produceType.toLowerCase(),
+        weightGrams: Number(formData.weight),
+        count: Number(formData.itemCount),
         harvestDate: formData.harvestDate,
-        location: { lat: Number(formData.lat), lng: Number(formData.lng), name: formData.village },
-        notes: formData.specialHandling,
+        gpsLocation: `${formData.lat},${formData.lng}`,
+        specialNotes: JSON.stringify({ ...formData.specialHandling, village: formData.village }),
         category
       };
       

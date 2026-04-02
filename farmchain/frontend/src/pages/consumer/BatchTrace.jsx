@@ -12,53 +12,70 @@ export default function BatchTrace() {
   const [showRaw, setShowRaw] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  // Mock fetching data based on batchId
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      // Simulate 404 if batchId is 'notfound'
-      if (batchId === 'notfound') {
-        setBatch(null);
-        setLoading(false);
-        return;
-      }
-      
-      setBatch({
-        batchId: batchId || 'BTH-9844XX',
-        produce: 'tomato',
-        weight: 12500,
-        frs: 88.5,
-        category: 'STANDARD',
-        farmer: {
-          name: 'Ramesh Gowda',
-          village: 'Tumkur',
-          state: 'Karnataka',
-          isVerifiedSmallholder: true,
-          reputation: 94,
-          photoUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=RG&backgroundColor=16a34a'
-        },
-        harvestDate: Date.now() - 86400000 * 3, // 3 days ago
-        blockchainStatus: 'VERIFIED',
-        trustIndicators: {
-          weightVerifiedChecks: 4,
-          sealBroken: false,
-          anomalyDetected: false,
-          smartContractPaid: true
-        },
-        transitNodes: [
-          { name: 'Ramesh Farms', role: 'FARMER', time: Date.now() - 86400000 * 3, frs: 100, status: 'A+' },
-          { name: 'Tumkur Aggregation Hub', role: 'MIDDLEMAN', time: Date.now() - 86400000 * 2, frs: 96, status: 'A' },
-          { name: 'AgriLogistics Transport', role: 'TRANSPORT', time: Date.now() - 86400000 * 1, frs: 92, status: 'A', warning: 'High temp spike briefly detected' },
-          { name: 'FreshMart Bengaluru', role: 'RETAILER', time: Date.now() - 3600000, frs: 88.5, status: 'B' }
-        ],
-        rawHashes: {
-          creationTx: '0x8f3c...ae91',
-          lastTransferTx: '0x11b3...dd4c',
-          ipfsMetadata: 'QmYwAP...7z4D'
+    const fetchTrace = async () => {
+      try {
+        setLoading(true);
+        // Uses the configured axios instance pointing to backend
+        const { default: api } = await import('../../services/api');
+        const res = await api.get(`/batch/${batchId}/trace`);
+        const { batch: onChainBatch, chain } = res.data;
+        
+        if (!onChainBatch || !onChainBatch.batchId) {
+          setBatch(null);
+          return;
         }
-      });
+
+        const formattedBatch = {
+          batchId: onChainBatch.batchId,
+          produce: onChainBatch.produceType,
+          weight: onChainBatch.originWeightGrams,
+          frs: Number(onChainBatch.currentFRS) / 100,
+          category: onChainBatch.category === 0 ? 'STANDARD' : (onChainBatch.category === 1 ? 'HIGH_SENSITIVITY' : 'ROBUST'),
+          farmer: {
+            name: onChainBatch.farmerWallet.substring(0, 8),
+            village: 'Unknown',
+            state: 'Unknown',
+            isVerifiedSmallholder: true,
+            reputation: 99,
+            photoUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${onChainBatch.farmerWallet}&backgroundColor=16a34a`
+          },
+          harvestDate: new Date(onChainBatch.harvestTimestamp).getTime(),
+          blockchainStatus: 'VERIFIED',
+          trustIndicators: {
+            weightVerifiedChecks: chain.length,
+            sealBroken: chain.some(c => c.seal === 1),
+            anomalyDetected: chain.some(c => c.label !== 'Normal Update' && c.label !== ''),
+            smartContractPaid: true
+          },
+          transitNodes: chain.map(node => ({
+            name: node.nodeName || node.nodeWallet.substring(0, 8),
+            role: node.nodeType === 1 ? 'MIDDLEMAN' : (node.nodeType === 2 ? 'TRANSPORT' : 'RETAILER'),
+            time: new Date(node.timestamp).getTime(),
+            frs: Number(node.frsBasisPoints) / 100,
+            status: node.grade || 'A+',
+            warning: node.label
+          })).sort((a,b) => a.time - b.time),
+          rawHashes: {
+            creationTx: 'Genesis Tx',
+            lastTransferTx: 'Latest Tx',
+            ipfsMetadata: 'N/A'
+          }
+        };
+        setBatch(formattedBatch);
+      } catch (err) {
+        console.error(err);
+        setBatch(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (batchId && batchId !== 'notfound') {
+      fetchTrace();
+    } else {
       setLoading(false);
-    }, 1200);
+      setBatch(null);
+    }
   }, [batchId]);
 
   if (loading) {

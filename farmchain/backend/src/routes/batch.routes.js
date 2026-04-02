@@ -101,4 +101,10 @@ router.get('/:batchId/qr', asyncHandler(async (req, res) => {
   res.json({ dataURL: qr.dataURL, batchId: req.params.batchId });
 }));
 
+router.get('/:batchId/trace', asyncHandler(async (req, res) => {
+  const batch = await blockchainService.getBatch(req.params.batchId);
+  const chain = await blockchainService.getCustodyChain(req.params.batchId);
+  res.json({ batch, chain });
+}));
+
 module.exports = router;

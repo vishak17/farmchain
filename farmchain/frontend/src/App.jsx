@@ -9,15 +9,30 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import RoleLayout from './components/layout/RoleLayout';
 
-// Placeholder Pages for now
-const BatchTrace = () => <div className="p-8 text-farm-text">Batch Trace Viewer</div>;
+import MyBatches from './pages/farmer/MyBatches';
+import InsurancePool from './pages/farmer/InsurancePool';
+import RegisterProduce from './pages/farmer/RegisterProduce';
+import FundingRequests from './pages/farmer/FundingRequests';
+
+import ScanBadge from './pages/consumer/ScanBadge';
+import MyInvestments from './pages/consumer/MyInvestments';
+import FundFarmer from './pages/consumer/FundFarmer';
+import BatchTrace from './pages/consumer/BatchTrace';
+
+import FRSVerification from './pages/retailer/FRSVerification';
+
+import AdminDashboard from './pages/admin/AdminDashboard';
+import SubsidyControl from './pages/admin/SubsidyControl';
+import BadActors from './pages/admin/BadActors';
+import NetworkInventory from './pages/admin/NetworkInventory';
+import DisputePanelPage from './pages/admin/DisputePanel';
 
 // Using RoleLayout generically for all roles
 const FarmerLayout = RoleLayout;
 const RetailerLayout = RoleLayout;
 const ConsumerLayout = RoleLayout;
 const AdminLayout = RoleLayout;
-const DisputePanel = RoleLayout;
+const DisputeLayout = RoleLayout;
 
 function ProtectedRoute({ element, roles }) {
   const { user, isAuthenticated } = useAuthStore();
@@ -73,12 +88,45 @@ export default function App() {
         <Route path="/trace/:batchId" element={<BatchTrace />} />
         
         {/* Role Protected Layouts */}
-        <Route path="/farmer/*" element={<ProtectedRoute element={<FarmerLayout />} roles={['FARMER']} />} />
-        <Route path="/retailer/*" element={<ProtectedRoute element={<RetailerLayout />} roles={['RETAILER']} />} />
-        <Route path="/middleman/*" element={<ProtectedRoute element={<RoleLayout />} roles={['MIDDLEMAN']} />} />
-        <Route path="/consumer/*" element={<ProtectedRoute element={<ConsumerLayout />} roles={['CONSUMER']} />} />
-        <Route path="/admin/*" element={<ProtectedRoute element={<AdminLayout />} roles={['ADMIN']} />} />
-        <Route path="/disputes/*" element={<ProtectedRoute element={<DisputePanel />} roles={['PANEL_MEMBER', 'ADMIN']} />} />
+        <Route path="/farmer" element={<ProtectedRoute element={<FarmerLayout />} roles={['FARMER']} />}>
+          <Route index element={<RegisterProduce />} />
+          <Route path="register" element={<RegisterProduce />} />
+          <Route path="batches" element={<MyBatches />} />
+          <Route path="funding" element={<FundingRequests />} />
+          <Route path="insurance" element={<InsurancePool />} />
+        </Route>
+        
+        <Route path="/retailer" element={<ProtectedRoute element={<RetailerLayout />} roles={['RETAILER']} />}>
+          <Route path="*" element={<FRSVerification />} />
+          <Route index element={<FRSVerification />} />
+          <Route path="verify" element={<FRSVerification />} />
+        </Route>
+        
+        <Route path="/middleman" element={<ProtectedRoute element={<RoleLayout />} roles={['MIDDLEMAN']} />}>
+          {/* Middleman doesn't have custom views implemented yet, defaulting back to list */}
+          <Route path="*" element={<div className="p-8 text-farm-text">Middleman View Pending</div>} />
+        </Route>
+        
+        <Route path="/consumer" element={<ProtectedRoute element={<ConsumerLayout />} roles={['CONSUMER']} />}>
+          <Route index element={<ScanBadge />} />
+          <Route path="scan" element={<ScanBadge />} />
+          <Route path="fund" element={<FundFarmer />} />
+          <Route path="investments" element={<MyInvestments />} />
+        </Route>
+        
+        <Route path="/admin" element={<ProtectedRoute element={<AdminLayout />} roles={['ADMIN']} />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="disputes" element={<DisputePanelPage />} />
+          <Route path="subsidy-pool" element={<SubsidyControl />} />
+          <Route path="bad-actors" element={<BadActors />} />
+          <Route path="inventory" element={<NetworkInventory />} />
+          <Route path="*" element={<AdminDashboard />} />
+        </Route>
+        
+        <Route path="/disputes" element={<ProtectedRoute element={<DisputeLayout />} roles={['PANEL_MEMBER', 'ADMIN']} />}>
+          <Route index element={<DisputePanelPage />} />
+          <Route path="*" element={<DisputePanelPage />} />
+        </Route>
         
         {/* Unauthorized Route */}
         <Route path="/unauthorized" element={

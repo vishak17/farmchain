@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Leaf, ShieldCheck, MapPin, TrendingUp, Info, X, DollarSign, Clock, ChevronRight, CheckCircle2, Lock, Activity } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { investInFarmer, getFundingMarketplace } from '../../services/api';
 
 const ETH_TO_INR = 200000;
 
@@ -30,13 +31,16 @@ export default function FundFarmer() {
     }, 1000);
   }, []);
 
-  const handleInvest = () => {
+  const handleInvest = async () => {
     setInvesting(true);
-    setTimeout(() => {
-      setInvesting(false);
+    try {
+      await investInFarmer(selectedRequest.id, { amountWei: Math.floor(investmentEth * 1e18) });
       setSuccess(true);
       toast.success('Smart Contract executed! Welcome as a stakeholder.');
-    }, 1500);
+    } catch (e) {
+      toast.error('Investment failed on smart contract.');
+    }
+    setInvesting(false);
   };
 
   const closePanel = () => {

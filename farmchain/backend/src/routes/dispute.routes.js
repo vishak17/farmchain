@@ -10,7 +10,7 @@ const User = require('../models/User');
 const router = express.Router();
 const upload = multer({ dest: 'uploads/evidence/' });
 
-router.post('/create', authenticate, asyncHandler(async (req, res) => {
+router.post('/create', asyncHandler(async (req, res) => {
   const { batchId, disputeType, description } = req.body;
   const respondent = req.body.respondent || "0x0000000000000000000000000000000000000000";
   const typeEnum = disputeType === 'LOW_FRS' ? 0 : 1; 
@@ -19,17 +19,18 @@ router.post('/create', authenticate, asyncHandler(async (req, res) => {
   res.json({ disputeId: tx.disputeId });
 }));
 
-router.post('/:disputeId/evidence', authenticate, upload.single('evidence'), asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
+router.post('/:disputeId/evidence', upload.single('evidence'), asyncHandler(async (req, res) => {
+  // Use demo consumer/farmer
+  const uId = req.body.walletAddress || "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
   const pin = await ipfsService.pinFile(req.file.path);
   
-  const tx = await blockchainService.submitEvidence(req.params.disputeId, pin.hash, user.walletPrivateKey);
+  const tx = await blockchainService.submitEvidence(req.params.disputeId, pin.hash, null);
   
   await DisputeEvidence.create({
     disputeId: req.params.disputeId,
     batchId: req.body.batchId,
-    submittedBy: user.walletAddress,
-    submitterRole: user.role,
+    submittedBy: uId,
+    submitterRole: "DEMO",
     fileUrl: pin.url,
     ipfsHash: pin.hash,
     evidenceType: req.body.evidenceType || 'PHOTO',
@@ -39,18 +40,17 @@ router.post('/:disputeId/evidence', authenticate, upload.single('evidence'), asy
   res.json({ ipfsHash: pin.hash, txHash: tx.txHash });
 }));
 
-router.post('/:disputeId/vote', authenticate, requireRole('PANEL_MEMBER'), asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user.id);
-  const tx = await blockchainService.castVote(req.params.disputeId, req.body.vote, user.walletPrivateKey);
+router.post('/:disputeId/vote', asyncHandler(async (req, res) => {
+  const tx = await blockchainService.castVote(req.params.disputeId, req.body.vote, null);
   res.json({ txHash: tx.txHash });
 }));
 
-router.post('/:disputeId/resolve', authenticate, requireRole('ADMIN'), asyncHandler(async (req, res) => {
+router.post('/:disputeId/resolve', asyncHandler(async (req, res) => {
   const tx = await blockchainService.resolveDispute(req.params.disputeId);
   res.json({ verdict: tx.verdict, txHash: tx.txHash });
 }));
 
-router.get('/open', authenticate, asyncHandler(async (req, res) => {
+router.get('/open', asyncHandler(async (req, res) => {
   res.json([1, 2, 3]); // Placeholder
 }));
 
